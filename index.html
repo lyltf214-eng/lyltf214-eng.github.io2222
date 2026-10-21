@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كتاب البرمجة الكائنية في جافاسكربت | JavaScript OOP</title>
+    <!-- Google Fonts Cairo & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Prism.js for Syntax Highlighting Theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        :root {
+            --bg-primary: #0f1015;
+            --bg-secondary: #171922;
+            --bg-card: #1f222e;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --gold-primary: #d4af37;
+            --gold-light: #fef1c7;
+            --gold-dark: #aa8513;
+            --gold-gradient: linear-gradient(135deg, #f3d068, #b8860b);
+            --border-color: rgba(212, 175, 55, 0.25);
+            --shadow-lux: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.1);
+            --code-bg: #121319;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --gold-primary: #b8860b;
+            --gold-light: #2d2407;
+            --gold-dark: #8b6508;
+            --gold-gradient: linear-gradient(135deg, #d4af37, #996515);
+            --border-color: rgba(184, 134, 11, 0.3);
+            --shadow-lux: 0 10px 25px rgba(0, 0, 0, 0.08), 0 0 10px rgba(184, 134, 11, 0.1);
+            --code-bg: #1e1e24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Reading Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gold-gradient);
+            width: 0%;
+            box-shadow: 0 0 10px var(--gold-primary);
+            transition: width 0.2s ease;
+        }
+
+        /* Top Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            box-shadow: var(--shadow-lux);
+            height: 65px;
+            width: 100%;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand i {
+            font-size: 1.4rem;
+            color: var(--gold-primary);
+        }
+
+        .header-brand h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--gold-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background: var(--gold-primary);
+            color: #000;
+        }
+
+        /* Layout Main */
+        .app-layout {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            position: relative;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 980;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Sidebar (قائمة جانبية تنزلق من اليمين) */
+        aside {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 300px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 990;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        aside.open {
+            right: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--gold-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .index-list {
+            list-style: none;
+            padding: 12px;
+        }
+
+        .index-item {
+            margin-bottom: 8px;
+        }
+
+        .index-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .index-link:hover, .index-link.active {
+            background: var(--bg-card);
+            color: var(--gold-primary);
+            border-right: 4px solid var(--gold-primary);
+        }
+
+        .index-link i {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Content Area */
+        main {
+            flex: 1;
+            padding: 25px 15px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-width: 0;
+        }
+
+        /* Chapter Card / Page Display */
+        .book-page {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px 20px;
+            box-shadow: var(--shadow-lux);
+            animation: fadeIn 0.4s ease-in-out;
+            width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chapter-tag {
+            display: inline-block;
+            background: var(--gold-light);
+            color: var(--gold-dark);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            border: 1px solid var(--gold-primary);
+        }
+
+        .book-page h2 {
+            font-size: 1.4rem;
+            color: var(--text-main);
+            margin-bottom: 18px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .book-page h3 {
+            font-size: 1.15rem;
+            color: var(--gold-primary);
+            margin: 20px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .book-page p {
+            line-height: 1.8;
+            color: var(--text-main);
+            font-size: 0.98rem;
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+
+        .book-page ul, .book-page ol {
+            margin: 10px 20px 20px 0;
+            line-height: 1.8;
+        }
+
+        .book-page li {
+            margin-bottom: 8px;
+        }
+
+        /* Code Block Styling */
+        .code-container {
+            position: relative;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+
+        .code-header {
+            background: #1a1c23;
+            padding: 8px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .code-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gold-primary);
+        }
+
+        .btn-copy {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid var(--gold-primary);
+            color: var(--gold-primary);
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        pre {
+            background: var(--code-bg) !important;
+            margin: 0 !important;
+            padding: 14px !important;
+            overflow-x: auto;
+            direction: ltr;
+            text-align: left;
+            width: 100%;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 0.85rem !important;
+        }
+
+        /* Tables */
+        .styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            display: block;
+            border: 1px solid var(--border-color);
+        }
+
+        .styled-table thead tr {
+            background-color: var(--gold-light);
+            color: var(--gold-dark);
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .styled-table th, .styled-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Footer Nav */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-indicator {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gold-primary);
+            white-space: nowrap;
+        }
+
+        /* Toast Alert */
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            background: var(--bg-card);
+            border: 1px solid var(--gold-primary);
+            color: var(--text-main);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lux);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            aside {
+                width: 85%;
+                right: -100%;
+            }
+
+            main {
+                padding: 15px 10px;
+            }
+
+            .header-brand h1 {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <header>
+        <div class="header-brand">
+            <button class="btn-icon" id="toggleSidebar" onclick="toggleSidebar()" title="فتح الفهرس">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <i class="fa-solid fa-book-bookmark"></i>
+            <h1>كتاب JS OOP الشامل</h1>
+        </div>
+
+        <div class="header-controls">
+            <button class="btn-icon" onclick="toggleTheme()" title="تغيير المظهر">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <span><i class="fa-solid fa-list-ol"></i> فهرس الكتاب</span>
+                <button class="btn-icon" onclick="closeSidebar()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <ul class="index-list">
+                <li class="index-item"><a class="index-link active" onclick="goToPage(0)"><i class="fa-solid fa-book-open"></i> الغلاف والمقدمة</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(1)"><i class="fa-solid fa-cubes"></i> 1. مفهوم OOP والـ Prototype</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(2)"><i class="fa-solid fa-code"></i> 2. الكلاسات (Classes)</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(3)"><i class="fa-solid fa-bolt"></i> 3. العناصر الثابتة (Static)</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(4)"><i class="fa-solid fa-user-lock"></i> 4. التغليف (Encapsulation)</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(5)"><i class="fa-solid fa-sitemap"></i> 5. الوراثة (Inheritance)</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(6)"><i class="fa-solid fa-masks-theater"></i> 6. تعدد الأشكال (Polymorphism)</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(7)"><i class="fa-solid fa-diagram-project"></i> 7. مشروع عملي متكامل</a></li>
+                <li class="index-item"><a class="index-link" onclick="goToPage(8)"><i class="fa-solid fa-square-check"></i> التلخيص والخاتمة</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <div id="pageContainer"></div>
+
+            <div class="page-navigation">
+                <button class="nav-btn" id="prevBtn" onclick="prevPage()"><i class="fa-solid fa-arrow-right"></i> السابقة</button>
+                <span class="page-indicator" id="pageIndicator">صفحة 1 من 9</span>
+                <button class="nav-btn" id="nextBtn" onclick="nextPage()">التالية <i class="fa-solid fa-arrow-left"></i></button>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast">
+        <i class="fa-solid fa-circle-check" style="color: var(--gold-primary);"></i>
+        <span id="toastMsg">تم النسخ بنجاح!</span>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        const bookPages = [
+            {
+                chapter: "المقدمة والتمهيد",
+                title: "دليل البرمجة الكائنية التوجه في JavaScript الحديثة",
+                content: `
+                    <div style="text-align: center; padding: 15px 0;">
+                        <i class="fa-solid fa-laptop-code" style="font-size: 3rem; color: var(--gold-primary); margin-bottom: 15px;"></i>
+                        <h1 style="font-size: 1.5rem; background: var(--gold-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;">مرجع البرمجة الكائنية الشامل (OOP in JS)</h1>
+                        <p style="font-size: 0.95rem; color: var(--text-muted);">دراسة معمقة للمفاهيم والتطبيقات البرمجية الحديثة وفق المعايير العالمية ES6+</p>
+                    </div>
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+                    <h3><i class="fa-solid fa-compass"></i> نظرة عامة حول البحث</h3>
+                    <p>تعتبر البرمجة الكائنية التوجه (Object-Oriented Programming - OOP) نمطاً برمجياً أساسياً (Programming Paradigm) ينظم الكود حول "الكائنات" بدلاً من الوظائف والمنطق المجرد. الهدف الرئيسي منها هو إعادة استخدام الكود (Reusability)، وتنظيم البرامج الضخمة لسهولة الصيانة والتوسع.</p>
+                    <p>يقدم هذا الكتاب دراسة متكاملة ومفصلة لجميع أركان النمط في لغة جافاسكربت بدءاً من مفهوم الـ Prototype العتيق وصولاً للتقنيات الحديثة مثل Private Fields وتعدد الأشكال.</p>
+                `
+            },
+            {
+                chapter: "الفصل الأول",
+                title: "مفهوم البرمجة الكائنية وسلسلة Prototype",
+                content: `
+                    <p>النموذج الأولي (Prototype) هو العمود الفقري المكون للغة JavaScript. خلافاً للغات البرمجة التقليدية كـ Java أو C++ التي تعتمد على الكلاسات الأصلية، تعتمد جافاسكربت في أصلها على وراثة النماذج (Prototypal Inheritance).</p>
+                    
+                    <h3>1. الكائنات المباشرة (Object Literals)</h3>
+                    <p>تتيح لك جافاسكربت تجميع الخواص (Properties) والسلوكيات (Methods) بسهولة داخل كائن واحد:</p>
+                    ${createCodeBlock(`const student = {
+    name: "دانيه",
+    age: 22,
+    major: "علوم حاسوب",
+    
+    // دالة داخلية تنتمي للكائن
+    study: function() {
+        console.log(\`\${this.name} تدرس تخصص \${this.major}.\`);
+    }
+};
+
+student.study(); // الخرج: دانيه تدرس تخصص علوم حاسوب.`, 'javascript', 'الكائنات البسيطة')}
+
+                    <h3>2. سلسلة النموذج الأولي (Prototype Chain)</h3>
+                    <p>عند طلب دالة أو خاصية من كائن ما، تبحث جافاسكربت داخل الكائن نفسه أولاً. إن لم تجدها، تتنقل عبر سلسلة الـ Prototype وصولاً للكائن العام <code>Object.prototype</code>.</p>
+                    ${createCodeBlock(`function Person(name) {
+    this.name = name;
+}
+
+// ربط الدالة بالـ Prototype لمنع استهلاك الذاكرة عند تكرار النسخ
+Person.prototype.sayHello = function() {
+    console.log(\`مرحباً، أنا \${this.name}\`);
+};
+
+const user1 = new Person("علي");
+user1.sayHello(); // يتم استدعاؤها من الـ Prototype`, 'javascript', 'الوراثة عبر Prototype')}
+                `
+            },
+            {
+                chapter: "الفصل الثاني",
+                title: "الكلاسات الحديثة في ES6 (Classes)",
+                content: `
+                    <p>في معيار ECMAScript 2015 (ES6)، أضيفت الكلمة المفتاحية <code>class</code> لتسهيل كتابة الكود وبنائه بأسلوب يشبه اللغات الكائنية الأخرى، ولكنها في الخلفية لا تزال تعمل باستخدام الـ Prototypes (Syntactic Sugar).</p>
+
+                    <h3>1. دالة البناء (Constructor)</h3>
+                    <p>دالة خاصة تُستدعى تلقائياً لحظة إنشاء نسخة جديدة بواسطة الكلمة المفتاحية <code>new</code> لإسناد القيم الأولية للخصائص.</p>
+                    
+                    ${createCodeBlock(`class User {
+    // دالة البناء
+    constructor(name, email) {
+        this.name = name;
+        this.email = email;
+    }
+
+    // دالة المعاينة (Method)
+    getDetails() {
+        return \`المستخدم: \${this.name} | البريد: \${this.email}\`;
+    }
+}
+
+// إنشاء نسخة جديدة (Instance)
+const user1 = new User("أحمد", "ahmed@example.com");
+console.log(user1.getDetails());`, 'javascript', 'تعريف الكلاس')}
+                `
+            },
+            {
+                chapter: "الفصل الثالث",
+                title: "العناصر والدوال الثابتة (Static Members)",
+                content: `
+                    <p>العناصر الثابتة <code>static</code> هي عناصر ترتبط بملكية الكلاس نفسه وليس بالنُسخ (Instances) المنشأة منه. تُستخدم عادة للوظائف والأدوات المساعدة (Helper Methods).</p>
+
+                    ${createCodeBlock(`class MathUtils {
+    // خاصية ثابتة
+    static PI = 3.14159;
+
+    // دالة حسابية ثابتة
+    static calculateArea(radius) {
+        return MathUtils.PI * radius * radius;
+    }
+}
+
+// الاستدعاء المباشر عن طريق اسم الكلاس
+console.log(MathUtils.PI); // 3.14159
+console.log(MathUtils.calculateArea(5)); // 78.53975
+
+// التنبيه: لن تعمل هذه الدوال إذا حاولت استدعاءها من نسخة كائن!
+const mathObj = new MathUtils();
+// mathObj.calculateArea(5); // TypeError`, 'javascript', 'استخدام العناصر الثابتة')}
+                `
+            },
+            {
+                chapter: "الفصل الرابع",
+                title: "مبدأ التغليف وحماية البيانات (Encapsulation)",
+                content: `
+                    <p><strong>التغليف</strong> هو أحد أهم أركان البرمجة الكائنية، ويهدف إلى إخفاء التفاصيل الداخلية وحماية البيانات الحساسة من التعديل العشوائي خارج نطاق الكلاس.</p>
+
+                    <h3>استخدام الحقول الخاصة (Private Fields - #)</h3>
+                    <p>تتيح جافاسكربت الحديثة وضع بادئة الرمز <code>#</code> أمام اسم الخصائص أو الدوال لجعلها خاصة محصورة داخل الكلاس فقط.</p>
+
+                    ${createCodeBlock(`class BankAccount {
+    // حقل خاص لا يمكن الوصول إليه من الخارج
+    #balance = 0;
+
+    constructor(owner, initialBalance) {
+        this.owner = owner;
+        if (initialBalance > 0) this.#balance = initialBalance;
+    }
+
+    // الحصول على القيمة بأمان (Getter)
+    get balance() {
+        return this.#balance;
+    }
+
+    // دالة إيداع بشرط تحقق محدد
+    deposit(amount) {
+        if (amount <= 0) return "المبلغ غير صحيح!";
+        this.#balance += amount;
+        return \`تم إيداع \${amount}$. الرصيد الحالي: \${this.#balance}$\`;
+    }
+}
+
+const account = new BankAccount("سارة", 500);
+console.log(account.deposit(200)); 
+// console.log(account.#balance); // سيؤدي لخطأ SyntaxError`, 'javascript', 'تطبيق التغليف والتسريب الآمن')}
+                `
+            },
+            {
+                chapter: "الفصل الخامس",
+                title: "مبدأ الوراثة والدالة الفائقة (Inheritance & Super)",
+                content: `
+                    <p>تسمح **الوراثة** لكلاس جديد (الكلاس الابن) بأخذ الصفات والدوال من كلاس سابق (الكلاس الأب)، مما يمنع التكرار ويحقق مبدأ (DRY - Don't Repeat Yourself).</p>
+
+                    <ul>
+                        <li><code>extends</code>: تُستخدم لربط الكلاس الابن بالأب.</li>
+                        <li><code>super()</code>: تُستخدم داخل دالة البناء لاستدعاء دالة بناء الكلاس الأب وإسناد المتغيرات.</li>
+                    </ul>
+
+                    ${createCodeBlock(`// الكلاس الأب
+class Employee {
+    constructor(name, salary) {
+        this.name = name;
+        this.salary = salary;
+    }
+
+    getDetails() {
+        return \`الموظف: \${this.name} | الراتب: \${this.salary}$\`;
+    }
+}
+
+// الكلاس الابن يربط بالـ extends
+class Manager extends Employee {
+    constructor(name, salary, department) {
+        super(name, salary); // استدعاء الأب
+        this.department = department;
+    }
+
+    assignTask(task, employeeName) {
+        console.log(\`المدير \${this.name} أسند مهمة (\${task}) للموظف \${employeeName}\`);
+    }
+}
+
+const mgr = new Manager("خالد", 4500, "تطوير البرمجيات");
+console.log(mgr.getDetails());`, 'javascript', 'الوراثة بواسطة extends')}
+                `
+            },
+            {
+                chapter: "الفصل السادس",
+                title: "مبدأ تعدد الأشكال (Polymorphism)",
+                content: `
+                    <p>يعبر **تعدد الأشكال** عن قدرة الكائنات المختلفة التابعة لكلاسات فرعية متعدية على تنفيذ نفس الدالة ولكن بطرق وسلوكيات مخصصة لكل نوع على حدة (Method Overriding).</p>
+
+                    ${createCodeBlock(`class Shape {
+    draw() {
+        console.log("رسم شكل هندسي عام...");
+    }
+}
+
+class Square extends Shape {
+    draw() {
+        console.log("رسم مربع أضلاعه متساوية ⬛");
+    }
+}
+
+class Circle extends Shape {
+    draw() {
+        console.log("رسم دائرة بقطر محدد ⚪");
+    }
+}
+
+// مصفوفة تحتوي على أنواع مختلفة تستجيب لنفس اسم الدالة
+const shapes = [new Square(), new Circle(), new Shape()];
+shapes.forEach(shape => shape.draw());`, 'javascript', 'تعدد الأشكال Method Overriding')}
+                `
+            },
+            {
+                chapter: "الفصل السابع",
+                title: "مشروع تطبيقي معماري متكامل",
+                content: `
+                    <p>تطبيق نظري وعملي يجمع مفاهيم OOP الاربعة (التغليف، الوراثة، العناصر الثابتة، وتعدد الأشكال) لبناء معمارية نظام إداري تعليمي:</p>
+
+                    ${createCodeBlock(`class User {
+    #id;
+    constructor(id, name, email) {
+        this.#id = id;
+        this.name = name;
+        this.email = email;
+    }
+
+    get id() { return this.#id; }
+
+    getRolePermissions() {
+        return "صلاحيات تصفح عادية.";
+    }
+}
+
+class Student extends User {
+    #courses = [];
+
+    enrollCourse(course) {
+        this.#courses.push(course);
+    }
+
+    // تجاوز الدالة (Polymorphism)
+    getRolePermissions() {
+        return "صلاحيات حل الواجبات ومتابعة الدروس.";
+    }
+}
+
+class Instructor extends User {
+    getRolePermissions() {
+        return "صلاحيات تقديم وتقييم الدروس والواجبات.";
+    }
+}
+
+// كلاس أدوات النظام (Static)
+class SystemPlatform {
+    static logActivity(user, action) {
+        console.log(\`[\${new Date().toLocaleTimeString()}] \${user.name}: \${action}\`);
+    }
+}
+
+const std = new Student(101, "دانيه", "dania@example.com");
+const inst = new Instructor(201, "أ. أحمد", "ahmed@example.com");
+
+SystemPlatform.logActivity(std, "تسجيل دخول المنصة");
+console.log(std.getRolePermissions());
+console.log(inst.getRolePermissions());`, 'javascript', 'تطبيق معمارية متكاملة')}
+                `
+            },
+            {
+                chapter: "التلخيص والخاتمة",
+                title: "جدول المفاهيم المكتسبة والخاتمة",
+                content: `
+                    <p>جدول تلخيص شامل لكل المفاهيم والقواعد البرمجية التي تمت دراستها خلال هذا الكتاب:</p>
+
+                    <table class="styled-table">
+                        <thead>
+                            <tr>
+                                <th>المفهوم</th>
+                                <th>الشرح الأكاديمي</th>
+                                <th>الكلمات المفتاحية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>الكلاس (Class)</td>
+                                <td>الهيكل والنموذج الأساسي المنشئ للكائنات</td>
+                                <td><code>class</code> / <code>constructor</code></td>
+                            </tr>
+                            <tr>
+                                <td>التغليف (Encapsulation)</td>
+                                <td>حماية الحقول والبيانات وإخفاؤها من التعديل الخارجي المباشر</td>
+                                <td><code>#field</code> / <code>get</code> / <code>set</code></td>
+                            </tr>
+                            <tr>
+                                <td>الوراثة (Inheritance)</td>
+                                <td>ورث الكلاس الابن لكافة خصائص ودوال الكلاس الأب</td>
+                                <td><code>extends</code> / <code>super</code></td>
+                            </tr>
+                            <tr>
+                                <td>تعدد الأشكال (Polymorphism)</td>
+                                <td>إعادة تعريف وإعطاء سلوك مختلف لنفس الدالة</td>
+                                <td><code>Method Overriding</code></td>
+                            </tr>
+                            <tr>
+                                <td>العناصر الثابتة (Static)</td>
+                                <td>خصائص ودوال ترتبط بالكلاس مباشرة بدلاً من النسخ</td>
+                                <td><code>static</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; border-right: 4px solid var(--gold-primary); margin-top: 25px;">
+                        <h4 style="color: var(--gold-primary); margin-bottom: 8px;"><i class="fa-solid fa-award"></i> خاتمة</h4>
+                        <p style="margin-bottom: 0;">بهذا نكون قد غطينا البرمجة الكائنية التوجه في JavaScript بشكل متكامل ومفصل، بدايةً من النظريات وتكوين الذاكرة وحتى أساليب البناء الحديثة والتطبيقات العمليّة، ليكون هذا العمل بحثاً مرجعياً راقياً ومكتملاً.</p>
+                    </div>
+                `
+            }
+        ];
+
+        let currentPage = 0;
+
+        function createCodeBlock(code, lang, title) {
+            const escapedCode = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            return `
+                <div class="code-container">
+                    <div class="code-header">
+                        <span class="code-title"><i class="fa-solid fa-code"></i> ${title}</span>
+                        <button class="btn-copy" onclick="copyCode(this)"><i class="fa-regular fa-copy"></i> نسخ الكود</button>
+                    </div>
+                    <pre><code class="language-${lang}">${escapedCode}</code></pre>
+                </div>
+            `;
+        }
+
+        window.onload = function() {
+            renderPage();
+        };
+
+        function renderPage() {
+            const container = document.getElementById('pageContainer');
+            const page = bookPages[currentPage];
+
+            container.innerHTML = `
+                <div class="book-page">
+                    <span class="chapter-tag">${page.chapter}</span>
+                    <h2>${page.title}</h2>
+                    <div>${page.content}</div>
+                </div>
+            `;
+
+            document.getElementById('pageIndicator').innerText = `صفحة ${currentPage + 1} من ${bookPages.length}`;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === bookPages.length - 1;
+
+            const progress = ((currentPage + 1) / bookPages.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            const links = document.querySelectorAll('.index-link');
+            links.forEach((link, idx) => {
+                if(idx === currentPage) link.classList.add('active');
+                else link.classList.remove('active');
+            });
+
+            if(window.Prism) Prism.highlightAll();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToPage(index) {
+            currentPage = index;
+            renderPage();
+            closeSidebar();
+        }
+
+        function nextPage() {
+            if (currentPage < bookPages.length - 1) {
+                currentPage++;
+                renderPage();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                renderPage();
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        function copyCode(button) {
+            const container = button.closest('.code-container');
+            const code = container.querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'flex';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
